@@ -4,7 +4,7 @@ from streamlit_option_menu import option_menu
 import requests
 import pandas as pd
 
-API_URL = "http://localhost:8000/products"
+API_URL = "http://products-service:8000/products"
 st.set_page_config(page_title="Gerenciamento de Produtos", layout="wide")
 
 # Menu lateral
