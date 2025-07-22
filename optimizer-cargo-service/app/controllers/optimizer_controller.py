@@ -14,23 +14,23 @@ class OptimizerController:
             data.number_generations, 
             mutation_rate=data.mutation_rate
         )
-        result = ga.resolver()
+        result = ga.run()
         print(result)
         # Serialize the result into the response format
         products = []
         total_space = 0
         total_value = 0
-        for i in enumerate(result):
-            if result[i] == '1':
-                product = ga.products[i]
+        for idx, gene in enumerate(result.chromosome):
+            if gene == '1':
+                product = ga.products[idx]
                 print(f"Product {product.name} R$ {product.value} x {product.amount}")
                 products.append(ProductOutput(
-                    nome=product.name,
-                    espaco=product.space,
-                    valor=product.value,
-                    quantidade=product.amount,
-                    total_espaco=product.space * product.amount,
-                    total_valor=product.value * product.amount
+                    name=product.name,
+                    space=product.space,
+                    value=product.value,
+                    amount=product.amount,
+                    total_space=product.space * product.amount,
+                    total_value=product.value * product.amount
                 ))
                 total_space += product.space * product.amount
                 total_value += product.value * product.amount
@@ -40,4 +40,4 @@ class OptimizerController:
             total_space=total_space,
             total_value=total_value
         )
-        
+
