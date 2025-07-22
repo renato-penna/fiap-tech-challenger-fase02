@@ -1,34 +1,43 @@
 from fastapi import HTTPException
-from app.schemas.optimize import OptimizeRequest, OptimizeResponse, ProdutoOutput
-from app.services.genetic_optimizer import AlgoritmoGenetico
+from app.schemas.optimize import OptimizeRequest, OptimizeResponse
+from app.schemas.product import ProductOutput
+from .genetic_algorithm import GeneticAlgorithm
 
 class OptimizerController:
+    
     @staticmethod
     def optimize(data: OptimizeRequest) -> OptimizeResponse:
-        ag = AlgoritmoGenetico(
-            produtos=data.produtos,
-            limite=data.limite,
-            taxa_mutacao=data.taxa_mutacao,
-            numero_geracoes=data.numero_geracoes,
-            tamanho_populacao=data.tamanho_populacao
+        ga = GeneticAlgorithm(
+            data.products, 
+            data.limit, 
+            data.population_size, 
+            data.number_generations, 
+            mutation_rate=data.mutation_rate
         )
-        melhor = ag.resolver()
-        produtos_result = []
-        espaco_total = 0
-        valor_total = 0
-        for i, gene in enumerate(melhor.cromossomo):
-            if gene == 1:
-                p = data.produtos[i]
-                total_espaco = p.espaco * p.quantidade
-                total_valor = p.valor * p.quantidade
-                produtos_result.append(ProdutoOutput(
-                    nome=p.nome,
-                    espaco=p.espaco,
-                    valor=p.valor,
-                    quantidade=p.quantidade,
-                    total_espaco=total_espaco,
-                    total_valor=total_valor
+        result = ga.resolver()
+        print(result)
+        # Serialize the result into the response format
+        products = []
+        total_space = 0
+        total_value = 0
+        for i in enumerate(result):
+            if result[i] == '1':
+                product = ga.products[i]
+                print(f"Product {product.name} R$ {product.value} x {product.amount}")
+                products.append(ProductOutput(
+                    nome=product.name,
+                    espaco=product.space,
+                    valor=product.value,
+                    quantidade=product.amount,
+                    total_espaco=product.space * product.amount,
+                    total_valor=product.value * product.amount
                 ))
-                espaco_total += total_espaco
-                valor_total += total_valor
-        return OptimizeResponse(produtos=produtos_result, espaco_total=espaco_total, valor_total=valor_total)
+                total_space += product.space * product.amount
+                total_value += product.value * product.amount
+
+        return OptimizeResponse(
+            products=products,
+            total_space=total_space,
+            total_value=total_value
+        )
+        

@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+
+  app:
+    container_name: optimizer-cargo-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: runserver
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+
