@@ -1,3 +1,4 @@
+# app/repositories/product_repository.py
 import uuid
 from typing import List, Dict, Optional
 from app.db import get_db
@@ -55,8 +56,11 @@ class ProductRepository:
         Deleta um produto da base de dados.
         Retorna True se o produto foi deletado, False caso contrário.
         """
+        print(f"DEBUG: Tentando deletar produto com ID: {product_id}") # Linha de depuração
         if product_id in self.db:
             del self.db[product_id]
+            print(f"DEBUG: Produto com ID: {product_id} DELETADO com sucesso do DB em memória.") # Linha de depuração
             return True
+        print(f"DEBUG: Produto com ID: {product_id} NÃO ENCONTRADO no DB em memória.") # Linha de depuração
         return False
 

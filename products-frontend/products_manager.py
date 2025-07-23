@@ -37,12 +37,17 @@ if menu == "Gerenciamento de Produtos":
         st.session_state["show_form"] = False
     if "edit_id" not in st.session_state:
         st.session_state["edit_id"] = None
+    # Novo estado para gerenciar a confirmação de exclusão
+    if "awaiting_delete_confirmation" not in st.session_state:
+        st.session_state["awaiting_delete_confirmation"] = None # Armazenará o ID do produto a ser confirmado
 
     # Botão "Novo Produto".
     # Adicionado 'key="btn_novo_produto"' para evitar duplicação de ID.
     if st.button("Novo Produto", key="btn_novo_produto"):
         st.session_state["show_form"] = True
         st.session_state["edit_id"] = None
+        st.session_state["awaiting_delete_confirmation"] = None # Limpa qualquer confirmação pendente
+        st.rerun() # Recarrega a página para mostrar o formulário de novo produto
 
     # Requisição GET para obter a lista de produtos do backend.
     try:
@@ -87,15 +92,12 @@ if menu == "Gerenciamento de Produtos":
         selected = grid_response["selected_rows"]
 
         # VERIFICAÇÃO ROBUSTA PARA EVITAR ValueError
-        # Se 'selected' for um DataFrame, verifica se não está vazio.
-        # Se for uma lista, verifica se não está vazia.
         if (isinstance(selected, pd.DataFrame) and not selected.empty) or \
            (isinstance(selected, list) and selected):
             
-            # Garante que 'produto' seja sempre um dicionário
             if isinstance(selected, pd.DataFrame):
                 produto = selected.iloc[0].to_dict()
-            else: # É uma lista de dicionários
+            else:
                 produto = selected[0] 
 
             st.write(f"Produto selecionado: {produto['nome']}") # Feedback visual
@@ -105,30 +107,48 @@ if menu == "Gerenciamento de Produtos":
             if col1.button("Editar", key=f"edit_btn_{produto['id']}"):
                 st.session_state["show_form"] = True
                 st.session_state["edit_id"] = produto["id"]
+                st.session_state["awaiting_delete_confirmation"] = None # Limpa qualquer confirmação pendente
                 st.rerun() # Recarrega a página para mostrar o formulário de edição
 
-            # Botão "Excluir". Usa o ID do produto como parte da chave.
+            # Botão "Excluir" (inicia o processo de confirmação)
             if col2.button("Excluir", key=f"delete_btn_{produto['id']}"):
-                # Exemplo de um modal de confirmação simples (não bloqueante como alert/confirm)
-                if st.session_state.get(f"confirm_delete_{produto['id']}", False):
-                    # Se já confirmou, procede com a exclusão
+                st.session_state["awaiting_delete_confirmation"] = produto['id'] # Define o ID do produto para confirmação
+                st.rerun() # Força um rerun para exibir a caixa de confirmação
+
+            # Lógica de confirmação de exclusão (exibida apenas se awaiting_delete_confirmation estiver definido)
+            if st.session_state["awaiting_delete_confirmation"] == produto['id']:
+                st.warning(f"Tem certeza que deseja excluir o produto '{produto['nome']}'? Esta ação é irreversível.")
+                
+                confirm_col, cancel_col = st.columns(2)
+                
+                # Botão para confirmar a exclusão
+                if confirm_col.button("Confirmar Exclusão Agora", key=f"confirm_delete_action_{produto['id']}"):
+                    print(f"DEBUG FRONTEND: Botão 'Confirmar Exclusão Agora' clicado para produto ID: {produto['id']}")
                     try:
+                        print(f"DEBUG FRONTEND: Enviando requisição DELETE para {API_URL}/{produto['id']}")
                         delete_response = requests.delete(f"{API_URL}/{produto['id']}")
                         delete_response.raise_for_status()
                         st.success("Produto excluído com sucesso!")
+                        print(f"DEBUG FRONTEND: Requisição DELETE bem-sucedida para produto ID: {produto['id']}")
                     except requests.exceptions.RequestException as e:
                         st.error(f"Erro ao excluir produto: {e}")
+                        print(f"DEBUG FRONTEND: Erro na requisição DELETE para produto ID: {produto['id']}: {e}")
+                    
+                    # Limpa o estado de confirmação e força um rerun para atualizar a lista
+                    st.session_state["awaiting_delete_confirmation"] = None
                     st.session_state["show_form"] = False
                     st.session_state["edit_id"] = None
-                    # Limpa o estado de confirmação
-                    st.session_state[f"confirm_delete_{produto['id']}"] = False 
                     st.rerun()
-                else:
-                    # Primeira vez que clica em "Excluir", mostra a mensagem de aviso e um botão de confirmação
-                    st.warning("Tem certeza que deseja excluir este produto? Clique em 'Confirmar Exclusão' abaixo.")
-                    if st.button("Confirmar Exclusão", key=f"confirm_delete_action_{produto['id']}"):
-                        st.session_state[f"confirm_delete_{produto['id']}"] = True 
-                        st.rerun() # Rerun para processar a confirmação
+                
+                # Botão para cancelar a exclusão
+                if cancel_col.button("Cancelar Exclusão", key=f"cancel_delete_action_{produto['id']}"):
+                    st.info("Exclusão cancelada.")
+                    st.session_state["awaiting_delete_confirmation"] = None # Limpa o estado de confirmação
+                    st.rerun() # Força um rerun para remover a caixa de confirmação
+        else:
+            # Se nenhum produto estiver selecionado ou a tabela estiver vazia,
+            # garante que não haja confirmação de exclusão pendente.
+            st.session_state["awaiting_delete_confirmation"] = None
 
 
     # Formulário de cadastro/edição de produto.
@@ -151,7 +171,8 @@ if menu == "Gerenciamento de Produtos":
         # O formulário é criado com um key único.
         with st.form(key="produto_cadastro_form"):
             nome = st.text_input("Nome", value=produto_para_editar["nome"], key="form_nome")
-            espaco = st.number_input("Espaço", value=float(produto_para_editar["espaco"]), min_value=0.0, key="form_espaco")
+            # Adicionado o parâmetro 'format="%.4f"' para exibir 4 casas decimais
+            espaco = st.number_input("Espaço", value=float(produto_para_editar["espaco"]), min_value=0.0, format="%.4f", key="form_espaco")
             valor = st.number_input("Valor", value=float(produto_para_editar["valor"]), min_value=0.0, key="form_valor")
             
             # Botão de submissão do formulário.
@@ -263,4 +284,3 @@ elif menu == "Controle de Carga":
                     st.error(f"Erro ao otimizar: {e}")
     else:
         st.info("Nenhum produto cadastrado. Cadastre produtos na seção 'Gerenciamento de Produtos' para usar o controle de carga.")
-
