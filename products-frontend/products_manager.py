@@ -7,7 +7,7 @@ import pandas as pd
 # Define a URL base para o serviço de produtos.
 # Se estiver rodando em Docker Compose, use o nome do serviço: "http://products-service:8000/products".
 # Se estiver rodando localmente (sem Docker), use: "http://localhost:8000/products".
-API_URL = "http://products-service:8000/products" # ALTERADO PARA USAR O NOME DO SERVIÇO DOCKER
+API_URL = "http://products-service:8000/products"
 
 # Configurações iniciais da página Streamlit.
 st.set_page_config(page_title="Gerenciamento de Produtos", layout="wide")
@@ -66,8 +66,10 @@ if menu == "Gerenciamento de Produtos":
         gb.configure_pagination(paginationAutoPageSize=True)
         gb.configure_default_column(editable=False)
         gb.configure_column("id", hide=True) # Esconde a coluna 'id'
-        # A coluna "Ações" está configurada com cellRenderer, mas não é diretamente usada na seleção.
-        # gb.configure_column("Ações", cellRenderer="agGroupCellRenderer")
+        
+        # HABILITA A SELEÇÃO DE LINHA ÚNICA COM CHECKBOX
+        gb.configure_selection('single', use_checkbox=True) 
+        
         grid_options = gb.build()
 
         st.subheader("Lista de Produtos")
@@ -75,17 +77,28 @@ if menu == "Gerenciamento de Produtos":
             df_produtos,
             gridOptions=grid_options,
             enable_enterprise_modules=False,
-            update_mode="NO_UPDATE",
+            update_mode="MODEL_CHANGED", # Alterado para MODEL_CHANGED para melhor reatividade
             fit_columns_on_grid_load=True,
             allow_unsafe_jscode=True, # Necessário para cellRenderer personalizado, se usado
-            # Adicionado 'key' para a AgGrid, embora geralmente não seja a causa do erro de duplicação
             key="produtos_grid"
         )
 
         # Lógica para botões de edição e exclusão de produtos selecionados na tabela.
         selected = grid_response["selected_rows"]
-        if selected:
-            produto = selected[0] # Pega o primeiro produto selecionado
+
+        # VERIFICAÇÃO ROBUSTA PARA EVITAR ValueError
+        # Se 'selected' for um DataFrame, verifica se não está vazio.
+        # Se for uma lista, verifica se não está vazia.
+        if (isinstance(selected, pd.DataFrame) and not selected.empty) or \
+           (isinstance(selected, list) and selected):
+            
+            # Garante que 'produto' seja sempre um dicionário
+            if isinstance(selected, pd.DataFrame):
+                produto = selected.iloc[0].to_dict()
+            else: # É uma lista de dicionários
+                produto = selected[0] 
+
+            st.write(f"Produto selecionado: {produto['nome']}") # Feedback visual
             col1, col2 = st.columns(2) # Cria duas colunas para os botões
 
             # Botão "Editar". Usa o ID do produto como parte da chave.
@@ -96,12 +109,6 @@ if menu == "Gerenciamento de Produtos":
 
             # Botão "Excluir". Usa o ID do produto como parte da chave.
             if col2.button("Excluir", key=f"delete_btn_{produto['id']}"):
-                # Substituído st.warning com um modal de confirmação ou lógica direta,
-                # pois st.warning não é uma função de bloqueio para confirmação.
-                # Para uma confirmação real, você precisaria de um componente personalizado ou um workaround.
-                # Aqui, vamos assumir que o clique já significa intenção de excluir para simplificar.
-                # Em um app real, você pode adicionar um st.checkbox "Confirmar exclusão" antes do botão.
-                
                 # Exemplo de um modal de confirmação simples (não bloqueante como alert/confirm)
                 if st.session_state.get(f"confirm_delete_{produto['id']}", False):
                     # Se já confirmou, procede com a exclusão
@@ -114,13 +121,13 @@ if menu == "Gerenciamento de Produtos":
                     st.session_state["show_form"] = False
                     st.session_state["edit_id"] = None
                     # Limpa o estado de confirmação
-                    st.session_state[f"confirm_delete_{produto['id']}"] = False
+                    st.session_state[f"confirm_delete_{produto['id']}"] = False 
                     st.rerun()
                 else:
                     # Primeira vez que clica em "Excluir", mostra a mensagem de aviso e um botão de confirmação
                     st.warning("Tem certeza que deseja excluir este produto? Clique em 'Confirmar Exclusão' abaixo.")
                     if st.button("Confirmar Exclusão", key=f"confirm_delete_action_{produto['id']}"):
-                        st.session_state[f"confirm_delete_{produto['id']}"] = True
+                        st.session_state[f"confirm_delete_{produto['id']}"] = True 
                         st.rerun() # Rerun para processar a confirmação
 
 
@@ -142,7 +149,6 @@ if menu == "Gerenciamento de Produtos":
             st.subheader("Novo Produto")
 
         # O formulário é criado com um key único.
-        # REMOVIDO O PRIMEIRO ARGUMENTO POSICIONAL "produto_form"
         with st.form(key="produto_cadastro_form"):
             nome = st.text_input("Nome", value=produto_para_editar["nome"], key="form_nome")
             espaco = st.number_input("Espaço", value=float(produto_para_editar["espaco"]), min_value=0.0, key="form_espaco")
@@ -252,8 +258,9 @@ elif menu == "Controle de Carga":
                     else:
                         st.error(f"Erro ao otimizar: {resp.text}")
                 except requests.exceptions.ConnectionError:
-                    st.error("Erro de conexão com o serviço de otimização. Certifique-se de que o backend de otimização está rodando em http://localhost:8002.")
+                    st.error("Erro de conexão com o serviço de otimização. Certifique-se de que o backend de otimização está rodando em http://optimizer-service:8002 (se usando Docker Compose) ou http://localhost:8002 (se localmente).")
                 except requests.exceptions.RequestException as e:
                     st.error(f"Erro ao otimizar: {e}")
     else:
         st.info("Nenhum produto cadastrado. Cadastre produtos na seção 'Gerenciamento de Produtos' para usar o controle de carga.")
+
