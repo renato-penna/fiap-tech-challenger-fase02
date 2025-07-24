@@ -1,4 +1,3 @@
-# filepath: products-frontend/Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -6,6 +5,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY app/ ./app/
 
-CMD ["streamlit", "run", "products_manager.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENV PYTHONPATH=/app
+ENV PRODUCTS_API_URL=http://products-service:8000/products
+ENV OPTIMIZER_API_URL=http://optimizer-service:8002/optimize/
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]

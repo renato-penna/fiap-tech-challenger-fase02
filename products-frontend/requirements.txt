@@ -1,5 +1,5 @@
-streamlit
-streamlit-aggrid
-streamlit-option-menu
-pandas
-requests
+streamlit==1.28.0
+streamlit-aggrid==0.3.4
+streamlit-option-menu==0.3.6
+requests==2.31.0
+pandas==2.0.3
