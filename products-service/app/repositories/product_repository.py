@@ -1,7 +1,8 @@
+# products-service/app/repositories/product_repository.py
 import uuid
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.schemas.product import ProductCreate, Product # CORRIGIDO: de product_schema para product
+from app.schemas.product import ProductCreate, Product # Importa de product.py
 from app.models.product_model import ProductModel # Importa o modelo SQLAlchemy
 
 class ProductRepository:

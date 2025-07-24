@@ -1,14 +1,13 @@
 version: '3.8'
 
 services:
-  # Serviço de Banco de Dados (se você estiver usando um, como PostgreSQL)
-  # Mantenha este bloco se você tem um serviço de banco de dados
+  # Serviço de Banco de Dados (PostgreSQL)
   db:
-    image: postgres:15 # Ou a imagem do seu banco de dados
+    image: postgres:15 # Use a imagem do seu banco de dados
     environment:
-       POSTGRES_DB: products_db        
-       POSTGRES_USER: app_user         
-       POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: products_db        
+      POSTGRES_USER: app_user         
+      POSTGRES_PASSWORD: mysecretpassword
     ports:
       - "5432:5432" # Mapeia a porta do banco de dados
     volumes:
@@ -16,39 +15,42 @@ services:
 
   # Serviço de Backend de Produtos
   products-service:
-    # O caminho de build agora aponta para a pasta 'products-service'
     build: ./products-service
     ports:
       - "8000:8000"
-    # O comando deve ser ajustado para rodar o main.py dentro da subpasta 'app'
-    # Se você tiver um Dockerfile dentro de products-service que já lida com isso,
-    # você pode não precisar do 'command' aqui, ou ele pode ser diferente.
-    # Assumindo que o Dockerfile em products-service copia o conteúdo de 'app' para o root do contêiner,
-    # ou que você quer rodar a partir de products-service/app/main.py
+    # O comando Uvicorn agora aponta para 'app.main:app',
+    # que estará disponível em /app/app/main.py dentro do contêiner
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
-      # Monta a pasta 'products-service' para dentro de '/app' no contêiner
-      - ./products-service:/app
+      # Monta a subpasta 'app' do seu host (products-service/app)
+      # para '/app/app' dentro do contêiner.
+      # Isso permite que o reloader do Uvicorn detecte mudanças no seu código local.
+      - ./products-service/app:/app/app
+      # Monta o arquivo requirements.txt da raiz de products-service
+      # para /app/requirements.txt dentro do contêiner.
+      - ./products-service/requirements.txt:/app/requirements.txt
     depends_on:
-      - db # Depende do serviço de banco de dados, se aplicável
+      - db # Depende do serviço de banco de dados
 
   # Serviço de Backend de Otimização
   optimizer-service:
-    # O caminho de build agora aponta para a pasta 'optimizer-cargo-service'
     build: ./optimizer-cargo-service
     ports:
       - "8002:8002"
-    # O comando deve ser ajustado para rodar o main.py (ou optimizer_controller.py)
-    # dentro da subpasta 'app' do optimizer-cargo-service
+    # O comando Uvicorn aponta para 'app.main:app' (ou o seu ponto de entrada principal)
+    # que estará disponível em /app/app/main.py dentro do contêiner
     command: uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
     volumes:
-      # Monta a pasta 'optimizer-cargo-service' para dentro de '/app' no contêiner
-      - ./optimizer-cargo-service:/app
-    # Não depende do banco de dados, pois usa memória (conforme o código que te dei)
+      # Monta a subpasta 'app' do seu host (optimizer-cargo-service/app)
+      # para '/app/app' dentro do contêiner.
+      - ./optimizer-cargo-service/app:/app/app
+      # Monta o arquivo requirements.txt da raiz de optimizer-cargo-service
+      # para /app/requirements.txt dentro do contêiner.
+      - ./optimizer-cargo-service/requirements.txt:/app/requirements.txt
+    # Este serviço não depende do banco de dados persistente, pois usa lógica em memória
 
   # Serviço de Frontend Streamlit
   frontend:
-    # O caminho de build agora aponta para a pasta 'products-frontend'
     build: ./products-frontend
     ports:
       - "8501:8501" # Porta padrão do Streamlit
@@ -59,7 +61,7 @@ services:
       API_URL: http://products-service:8000/products
       OPTIMIZER_URL: http://optimizer-service:8002/optimize/
     volumes:
-      # Monta a pasta 'products-frontend' para dentro de '/app' no contêiner
+      # Monta a pasta 'products-frontend' do seu host para '/app' no contêiner.
       - ./products-frontend:/app
 
 volumes:

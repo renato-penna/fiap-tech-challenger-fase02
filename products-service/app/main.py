@@ -1,7 +1,9 @@
+# products-service/app/main.py
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.routers import product_router # Importa o roteador de produtos
-from app.database import create_db_tables, get_db # Importa funções de banco de dados
+# Importa funções de banco de dados (sem insert_initial_products)
+from app.database import create_db_tables, get_db 
 from app.repositories.product_repository import ProductRepository # Importa o repositório
 
 # Cria a instância da aplicação FastAPI

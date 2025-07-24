@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends # Importa Depends
 from typing import List
 from sqlalchemy.orm import Session # Importa Session
-from app.schemas.product import Product, ProductCreate # Certifique-se que o import está correto (product.py)
+from app.schemas.product import Product, ProductCreate # Importa de product.py
 from app.controllers.product_controller import ProductController
 from app.database import get_db # Importa a função get_db
 

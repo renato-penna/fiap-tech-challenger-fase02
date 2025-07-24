@@ -1,6 +1,7 @@
+# products-service/app/controllers/product_controller.py
 from typing import List, Optional
 from sqlalchemy.orm import Session # Importa a Session
-from app.schemas.product import ProductCreate, Product
+from app.schemas.product import ProductCreate, Product # Importa de product.py
 from app.repositories.product_repository import ProductRepository
 
 class ProductController:

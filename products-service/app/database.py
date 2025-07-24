@@ -1,7 +1,7 @@
 # products-service/app/database.py
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 import os
 
 # Variáveis de ambiente para conexão com o banco de dados
@@ -34,11 +34,17 @@ def get_db():
     finally:
         db.close()
 
-# Função para criar todas as tabelas definidas nos modelos Base
 def create_db_tables():
     """
     Cria todas as tabelas no banco de dados.
     Esta função deve ser chamada na inicialização da aplicação.
-    Em um ambiente de produção, você usaria ferramentas de migração como Alembic.
+    A importação de ProductModel é feita aqui para garantir que Base.metadata
+    tenha todos os modelos registrados antes de criar as tabelas.
     """
+    # Importa ProductModel aqui para evitar importação circular
+    from app.models.product_model import ProductModel # Importa o modelo SQLAlchemy
+    print("DEBUG: Criando tabelas do banco de dados (se não existirem)...")
     Base.metadata.create_all(bind=engine)
+    print("DEBUG: Tabelas do banco de dados criadas (ou já existentes).")
+
+# A função insert_initial_products NÃO está presente nesta versão.

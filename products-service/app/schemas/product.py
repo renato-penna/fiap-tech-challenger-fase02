@@ -1,3 +1,4 @@
+# products-service/app/schemas/product.py
 from pydantic import BaseModel
 from typing import Optional
 
@@ -28,4 +29,4 @@ class Product(ProductBase):
         Configuração para o Pydantic, permitindo que o modelo seja criado a partir de atributos de objeto.
         Isso é crucial para que o Pydantic possa ler dados de instâncias do ORM (SQLAlchemy).
         """
-        from_attributes = True # Anteriormente 'orm_mode = True' em Pydantic v1
+        from_attributes = True
