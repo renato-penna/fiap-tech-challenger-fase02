@@ -1,28 +1,17 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from .product import ProductInput, ProductOutput
 
-class ProdutoInput(BaseModel):
-    nome: str
-    espaco: float
-    valor: float
-    quantidade: int
 
 class OptimizeRequest(BaseModel):
-    produtos: List[ProdutoInput]
-    limite: float
-    taxa_mutacao: Optional[float] = 0.01
-    numero_geracoes: Optional[int] = 100
-    tamanho_populacao: Optional[int] = 200
+    products: List[ProductInput]
+    limit: float
+    mutation_rate: Optional[float] = 0.01
+    number_generations: Optional[int] = 100
+    population_size: Optional[int] = 200
 
-class ProdutoOutput(BaseModel):
-    nome: str
-    espaco: float
-    valor: float
-    quantidade: int
-    total_espaco: float
-    total_valor: float
 
 class OptimizeResponse(BaseModel):
-    produtos: List[ProdutoOutput]
-    espaco_total: float
-    valor_total: float
+    products: List[ProductOutput]
+    total_space: float
+    total_value: float

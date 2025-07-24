@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+
+  app:
+    container_name: optimizer-cargo-service
+    build: .
+    command: runserver
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    network_mode: host
+
