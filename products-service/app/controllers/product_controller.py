@@ -1,4 +1,5 @@
 from typing import List, Optional
+from sqlalchemy.orm import Session # Importa a Session
 from app.schemas.product import ProductCreate, Product
 from app.repositories.product_repository import ProductRepository
 
@@ -6,8 +7,9 @@ class ProductController:
     """
     Controlador para gerenciar a lógica de negócios dos produtos.
     """
-    def __init__(self):
-        self.repository = ProductRepository() # Instancia o repositório de produtos
+    # O construtor agora recebe a sessão do banco de dados
+    def __init__(self, db: Session):
+        self.repository = ProductRepository(db) # Passa a sessão para o repositório
 
     def get_all_products(self) -> List[Product]:
         """
