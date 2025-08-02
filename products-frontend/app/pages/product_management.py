@@ -48,17 +48,8 @@ def main() -> None:
     """
     st.title("📦 Product Management")
     aplicar_estilos()
-    inicializar_sessao()
 
     service = ProdutoService()
-
-    # Inicializar sessão
-    inicializar_sessao()
-    
-    # Garantir que o formulário seja sempre exibido
-    st.session_state[SESSION_SHOW_FORM] = True
-
-    st.markdown("---")
 
     # Recarregar produtos a cada execução para garantir dados atualizados
     try:
@@ -166,12 +157,10 @@ def processar_selecao(
                 if st.button("✏️ Edit", key=f"btn_edit_{produto.id}", use_container_width=True):
                     st.session_state[SESSION_EDIT_ID] = produto.id
                     st.session_state[SESSION_SHOW_FORM] = True
-                    st.rerun()
             
             with col2:
                 if st.button("🗑️ Delete", key=f"btn_delete_{produto.id}", use_container_width=True, type="secondary"):
                     st.session_state[SESSION_DELETE_CONFIRMATION] = produto.id
-                    st.rerun()
             
             with col3:
                 st.write("")
@@ -227,11 +216,20 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
     """
     produto_editado = None
 
+    # Limpar formulário se necessário
+    if st.session_state.get("should_clear_form"):
+        limpar_formulario()
+        st.session_state["should_clear_form"] = False
+
+    st.write(f"Debug: SESSION_EDIT_ID = {st.session_state.get(SESSION_EDIT_ID)}")
+    st.write(f"Debug: SESSION_SHOW_FORM = {st.session_state.get(SESSION_SHOW_FORM)}")
+
     if st.session_state.get(SESSION_EDIT_ID):
         try:
             produto_editado = service.buscar_por_id(
                 st.session_state[SESSION_EDIT_ID], produtos
             )
+            st.write(f"Debug: Produto encontrado para edição = {produto_editado}")
         except ValueError:
             mostrar_erro("Product not found.")
             limpar_formulario()
@@ -247,6 +245,8 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
         "valor": float(produto_editado.valor) if produto_editado else 0.0
     }
 
+    st.write(f"Debug: Renderizando formulário - produto_editado = {produto_editado}")
+    
     with st.form("form_produto", clear_on_submit=False):
         st.write("**Fill in the product data:**")
 
@@ -278,7 +278,11 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
             st.success("✅ Form cancelled!")
             st.rerun()
 
+        st.write(f"Debug: salvar_clicked = {salvar_clicked}")
+        st.write(f"Debug: cancelar_clicked = {cancelar_clicked}")
+        
         if salvar_clicked:
+            st.write("Debug: Botão Save foi clicado!")
 
             if not nome or not nome.strip():
                 mostrar_erro("Product name is required!")
@@ -307,9 +311,9 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
                         mostrar_sucesso(MESSAGES["produto_criado"])
                         st.write("Debug: Produto criado com sucesso")
 
-                    st.write("Debug: Limpando formulário")
-                    limpar_formulario()
-                    st.write("Debug: Executando st.rerun()")
+                    st.write("Debug: Operação concluída com sucesso!")
+                    # Marcar para limpar formulário na próxima execução
+                    st.session_state["should_clear_form"] = True
                     # Forçar atualização da página para mostrar dados atualizados
                     st.success("✅ Operation completed successfully!")
                     st.rerun()
