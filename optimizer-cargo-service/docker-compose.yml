@@ -10,12 +10,13 @@ services:
       - .:/app
     env_file:
       - .env
-    # ports:
-    #   - "8002:8002"
+    ports:
+      - "8002:8002"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://0.0.0.0:8002/health/"]
-      interval: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health/"]
+      interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
 

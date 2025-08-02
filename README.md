@@ -34,28 +34,51 @@ O sistema é composto por três microserviços principais:
 - Docker e Docker Compose
 - Python 3.11+ (para desenvolvimento local)
 
-### Execução Rápida
+### Configuração Inicial
 ```bash
 # Clone o repositório
 git clone <repository-url>
 cd fiap-tech-challenger-fase02
 
-# Execute todos os serviços
-make runapp
+# Testar a configuração
+./test-setup.sh
 
-# Verifique o status
+# Ou usar o Makefile para configurar automaticamente
+make setup-env
+```
+
+### Execução Rápida
+```bash
+# Iniciar todos os serviços
+make up
+
+# Verificar o status
 make health
+
+# Ver logs
+make logs
 ```
 
 ### Comandos Disponíveis
 ```bash
-# Iniciar serviços Linux
-make runapp          # Modo detached
-make runapp-dev      # Modo interativo
+# Configuração
+make setup-env       # Criar arquivos .env
+make build           # Construir imagens
 
-# Iniciar serviços Windows
-make up          # Modo detached
-make up-dev      # Modo interativo
+# Execução
+make up              # Iniciar em background
+make up-dev          # Iniciar em modo desenvolvimento
+make down            # Parar serviços
+make restart         # Reiniciar serviços
+
+# Monitoramento
+make logs            # Ver logs de todos os serviços
+make logs-[service]  # Ver logs de um serviço específico
+make health          # Verificar status dos serviços
+make status          # Ver status dos containers
+
+# Limpeza
+make clean           # Parar e remover tudo
 ```
 
 ## 📊 Funcionalidades
@@ -132,6 +155,66 @@ make health
 - **Products API**: Endpoint `/products/`
 - **Optimizer API**: Endpoint `/optimize/`
 - **Frontend**: Interface web em http://localhost:8501
+
+## 🔧 Troubleshooting
+
+### Problemas Comuns
+
+#### 1. Portas já em uso
+```bash
+# Verificar portas em uso
+lsof -i :5433
+lsof -i :8000
+lsof -i :8002
+lsof -i :8501
+
+# Parar serviços que estejam usando as portas
+docker-compose down
+```
+
+#### 2. Erro de conexão com banco de dados
+```bash
+# Verificar se o banco está rodando
+docker-compose logs fiap-tech-challenger-fase2-db
+
+# Aguardar o health check do banco
+docker-compose ps
+```
+
+#### 3. Serviços não iniciam
+```bash
+# Ver logs detalhados
+make logs
+
+# Reconstruir imagens
+make build
+
+# Limpar tudo e recomeçar
+make clean
+make up
+```
+
+#### 4. Arquivos .env ausentes
+```bash
+# Criar arquivos .env automaticamente
+make setup-env
+```
+
+### Comandos de Diagnóstico
+```bash
+# Verificar status dos containers
+docker-compose ps
+
+# Ver logs de um serviço específico
+docker-compose logs fiap-tech-challenger-fase2-products-service
+
+# Verificar rede Docker
+docker network ls
+docker network inspect fiap-tech-challenger-fase02_app-network
+
+# Verificar volumes
+docker volume ls
+```
 
 ## 🛠️ Desenvolvimento
 
