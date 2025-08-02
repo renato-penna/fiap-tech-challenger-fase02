@@ -36,18 +36,18 @@ class Subject:
             limit (float): Space limit of the truck.
             generation (int, optional): Generation number. Defaults to 0.
         """
-        # Start control variables
+        # Inicia variáveis de controle
         self.generation = generation
         self.limit = limit
-        self.evaluation_note = 0 # Sum of the values that will enter the load
-        self.space_used = 0 # Sum of total used space
+        self.evaluation_note = 0  # Soma dos valores que entrarão na carga
+        self.space_used = 0  # Soma do espaço total usado
         
-        # Start info variables and generate the chromosome
+        # Inicia variáveis de informação e gera o cromossomo
         self.products = products
         self._init_info_variables()
         self._generate_chromosome()
         
-        # First evaluation
+        # Primeira avaliação
         self.evaluate()
         
     def _init_info_variables(self) -> None:
@@ -64,10 +64,10 @@ class Subject:
         """
         self.chromosome = []
         for i in range(len(self.spaces)):
-            if random() < 0.5: # 50% chance of taking the product
-                self.chromosome.append("0") # I won't take
+            if random() < 0.5:  # 50% de chance de pegar o produto
+                self.chromosome.append("0")  # Não vou pegar
             else:
-                self.chromosome.append("1") # I will take
+                self.chromosome.append("1")  # Vou pegar
         
     def evaluate(self) -> None:
         """
@@ -82,10 +82,10 @@ class Subject:
                 space_used += (self.spaces[i] * self.amounts[i])
 
         if space_used > self.limit:
-            evaluation_note = 1  # penalty: If the sum is greater than the space limit, 
-            # it exceeds the load value.
-            # I can't carry everything, so this solution isn't a good solution
-            # I downgrade the score to 1.
+            evaluation_note = 1  # penalidade: Se a soma for maior que o limite de espaço,
+            # excede o valor da carga.
+            # Não posso carregar tudo, então esta solução não é uma boa solução
+            # Rebaixo a pontuação para 1.
             
         self.evaluation_note = evaluation_note
         self.space_used = space_used
@@ -100,18 +100,18 @@ class Subject:
         Returns:
             Tuple[Subject, Subject]: Two offspring subjects.
         """
-        # Define cut position for crossover
+        # Define posição de corte para o crossover
         cut_position = round(random() * len(self.chromosome))
         
-        # Star sons with the crossover of the parents
+        # Inicia os filhos com o crossover dos pais
         son1 = Subject(self.products, self.limit, generation=self.generation + 1)
         son2 = Subject(self.products, self.limit, generation=self.generation + 1)
         
-        # subsect the chromosomes and replace the sons' chromosomes
+        # subdivide os cromossomos e substitui os cromossomos dos filhos
         son1.chromosome = self.chromosome[:cut_position] + other.chromosome[cut_position:]
         son2.chromosome = other.chromosome[:cut_position] + self.chromosome[cut_position:]
         
-        # Evaluate the sons
+        # Avalia os filhos
         son1.evaluate()
         son2.evaluate()
         return son1, son2
