@@ -1,0 +1,15 @@
+# Arquivo de exemplo para variáveis de ambiente
+# Copie este conteúdo para arquivos .env em cada serviço
+
+# products-service/.env
+DATABASE_URL=postgresql://app_user:mysecretpassword@fiap-tech-challenger-fase2-db:5432/products_db
+HOST=0.0.0.0
+PORT=8000
+
+# optimizer-cargo-service/.env
+HOST=0.0.0.0
+PORT=8002
+
+# products-frontend/.env
+PRODUCTS_API_URL=http://fiap-tech-challenger-fase2-products-service:8000/products
+OPTIMIZER_URL=http://fiap-tech-challenger-fase2-optimizer-cargo-service:8002/optimize/ 

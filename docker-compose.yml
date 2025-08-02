@@ -18,37 +18,85 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   # Serviço de Backend de Produtos
   fiap-tech-challenger-fase2-products-service:
     hostname: fiap-tech-challenger-fase2-products-service
-    network_mode: host
-    extends:
-      file: products-service/docker-compose.yml
-      service: app
+    build:
+      context: ./products-service
+      dockerfile: Dockerfile
+    command: runserver
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://app_user:mysecretpassword@fiap-tech-challenger-fase2-db:5432/products_db
     volumes:
       - fiap-tech-challenger-fase2-products-service:/app/media
+    depends_on:
+      fiap-tech-challenger-fase2-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
 
   # Serviço de Backend de Otimização
   fiap-tech-challenger-fase2-optimizer-cargo-service:
     hostname: fiap-tech-challenger-fase2-optimizer-cargo-service
-    network_mode: host
-    extends:
-      file: optimizer-cargo-service/docker-compose.yml
-      service: app
+    build:
+      context: ./optimizer-cargo-service
+      dockerfile: Dockerfile
+    command: runserver
+    ports:
+      - "8002:8002"
     volumes:
       - fiap-tech-challenger-fase2-optimizer-cargo-service:/app/media
+    depends_on:
+      - fiap-tech-challenger-fase2-products-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
 
   # Serviço de Frontend Streamlit
   fiap-tech-challenger-fase2-products-frontend:
     hostname: fiap-tech-challenger-fase2-products-frontend
-    network_mode: host
-    extends:
-      file: products-frontend/docker-compose.yml
-      service: app
+    build:
+      context: ./products-frontend
+      dockerfile: Dockerfile
+    command: runserver
+    ports:
+      - "8501:8501"
+    environment:
+      - PRODUCTS_API_URL=http://fiap-tech-challenger-fase2-products-service:8000/products
+      - OPTIMIZER_URL=http://fiap-tech-challenger-fase2-optimizer-cargo-service:8002/optimize/
     volumes:
       - fiap-tech-challenger-fase2-products-frontend:/app/media
+    depends_on:
+      - fiap-tech-challenger-fase2-products-service
+      - fiap-tech-challenger-fase2-optimizer-cargo-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
 
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   fiap-tech-challenger-fase2-db:
