@@ -137,6 +137,44 @@ def processar_selecao(
 
         if produto:
             st.write(f"Selected product: {produto.nome}")
+            
+            # Botões de ação para o produto selecionado
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                if st.button("✏️ Edit", key="btn_edit", use_container_width=True):
+                    st.session_state[SESSION_EDIT_ID] = produto.id
+                    st.session_state[SESSION_SHOW_FORM] = True
+                    st.experimental_rerun()
+            
+            with col2:
+                if st.button("🗑️ Delete", key="btn_delete", use_container_width=True, type="secondary"):
+                    st.session_state[SESSION_DELETE_CONFIRMATION] = produto.id
+                    st.experimental_rerun()
+            
+            with col3:
+                st.write("")
+            
+            # Confirmação de exclusão
+            if st.session_state.get(SESSION_DELETE_CONFIRMATION) == produto.id:
+                st.warning(f"⚠️ Are you sure you want to delete '{produto.nome}'?")
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if st.button("✅ Yes, Delete", key="btn_confirm_delete", use_container_width=True):
+                        try:
+                            with st.spinner("🗑️ Deleting product..."):
+                                service.excluir(produto.id)
+                                mostrar_sucesso(MESSAGES["produto_excluido"])
+                                st.session_state[SESSION_DELETE_CONFIRMATION] = None
+                                st.experimental_rerun()
+                        except Exception as e:
+                            mostrar_erro(f"Error deleting product: {str(e)}")
+                
+                with col2:
+                    if st.button("❌ Cancel", key="btn_cancel_delete", use_container_width=True):
+                        st.session_state[SESSION_DELETE_CONFIRMATION] = None
+                        st.experimental_rerun()
     else:
         st.session_state[SESSION_DELETE_CONFIRMATION] = None
 
