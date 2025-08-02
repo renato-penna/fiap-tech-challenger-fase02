@@ -6,10 +6,10 @@ cli_help() {
   cli_name=${0##*/}
   echo "
 $cli_name
-Products Service entrypoint cli
+Frontend Service entrypoint cli
 Usage: $cli_name [command]
 Commands:
-  runserver     Start the FastAPI server
+  runserver     Start the Streamlit server
   *             Help
 "
   exit 1
@@ -17,7 +17,7 @@ Commands:
 
 case "$1" in
   runserver)
-    exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    exec streamlit run app/main.py --server.port=8501 --server.address=0.0.0.0
     ;;
   *)
     cli_help

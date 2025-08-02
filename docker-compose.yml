@@ -2,67 +2,59 @@ version: '3.8'
 
 services:
   # Serviço de Banco de Dados (PostgreSQL)
-  db:
-    image: postgres:15 # Use a imagem do seu banco de dados
+  fiap-tech-challenger-fase2-db:
+    hostname: fiap-tech-challenger-fase2-db
+    image: postgres:15
     environment:
-      POSTGRES_DB: products_db        
-      POSTGRES_USER: app_user         
+      POSTGRES_DB: products_db
+      POSTGRES_USER: app_user
       POSTGRES_PASSWORD: mysecretpassword
     ports:
-      - "5432:5432" # Mapeia a porta do banco de dados
+      - "5433:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data # Persistência de dados do banco de dados
+      - fiap-tech-challenger-fase2-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d products_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Serviço de Backend de Produtos
-  products-service:
-    build: ./products-service
+  fiap-tech-challenger-fase2-products-service:
+    hostname: fiap-tech-challenger-fase2-products-service
     ports:
       - "8000:8000"
-    # O comando Uvicorn agora aponta para 'app.main:app',
-    # que estará disponível em /app/app/main.py dentro do contêiner
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    extends:
+      file: products-service/docker-compose.yml
+      service: app
     volumes:
-      # Monta a subpasta 'app' do seu host (products-service/app)
-      # para '/app/app' dentro do contêiner.
-      # Isso permite que o reloader do Uvicorn detecte mudanças no seu código local.
-      - ./products-service/app:/app/app
-      # Monta o arquivo requirements.txt da raiz de products-service
-      # para /app/requirements.txt dentro do contêiner.
-      - ./products-service/requirements.txt:/app/requirements.txt
-    depends_on:
-      - db # Depende do serviço de banco de dados
+      - fiap-tech-challenger-fase2-products-service:/app/media
 
   # Serviço de Backend de Otimização
-  optimizer-service:
-    build: ./optimizer-cargo-service
+  fiap-tech-challenger-fase2-optimizer-cargo-service:
+    hostname: fiap-tech-challenger-fase2-optimizer-cargo-service
     ports:
       - "8002:8002"
-    # O comando Uvicorn aponta para 'app.main:app' (ou o seu ponto de entrada principal)
-    # que estará disponível em /app/app/main.py dentro do contêiner
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
+    extends:
+      file: optimizer-cargo-service/docker-compose.yml
+      service: app
     volumes:
-      # Monta a subpasta 'app' do seu host (optimizer-cargo-service/app)
-      # para '/app/app' dentro do contêiner.
-      - ./optimizer-cargo-service/app:/app/app
-      # Monta o arquivo requirements.txt da raiz de optimizer-cargo-service
-      # para /app/requirements.txt dentro do contêiner.
-      - ./optimizer-cargo-service/requirements.txt:/app/requirements.txt
-    # Este serviço não depende do banco de dados persistente, pois usa lógica em memória
+      - fiap-tech-challenger-fase2-optimizer-cargo-service:/app/media
 
   # Serviço de Frontend Streamlit
-  frontend:
-    build: ./products-frontend
+  fiap-tech-challenger-fase2-products-frontend:
+    hostname: fiap-tech-challenger-fase2-products-frontend
     ports:
-      - "8501:8501" # Porta padrão do Streamlit
-    depends_on:
-      - products-service
-      - optimizer-service
-    environment:
-      API_URL: http://products-service:8000/products
-      OPTIMIZER_URL: http://optimizer-service:8002/optimize/
+      - "8501:8501"
+    extends:
+      file: products-frontend/docker-compose.yml
+      service: app
     volumes:
-      # Monta a pasta 'products-frontend' do seu host para '/app' no contêiner.
-      - ./products-frontend:/app
+      - fiap-tech-challenger-fase2-products-frontend:/app/media
+
 
 volumes:
-  db_data: # Volume para persistir os dados do PostgreSQL
+  fiap-tech-challenger-fase2-db:
+  fiap-tech-challenger-fase2-products-service:
+  fiap-tech-challenger-fase2-optimizer-cargo-service:
+  fiap-tech-challenger-fase2-products-frontend:

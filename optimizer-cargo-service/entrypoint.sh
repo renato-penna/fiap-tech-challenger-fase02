@@ -6,10 +6,10 @@ cli_help() {
   cli_name=${0##*/}
   echo "
 $cli_name
-System entrypoint cli
+Optimizer Service entrypoint cli
 Usage: $cli_name [command]
 Commands:
-  runserver     deploy runserver
+  runserver     Start the FastAPI server
   *             Help
 "
   exit 1
@@ -17,7 +17,8 @@ Commands:
 
 case "$1" in
   runserver)
-    uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    echo "Starting Optimizer Service..."
+    exec uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
     ;;
   *)
     cli_help
