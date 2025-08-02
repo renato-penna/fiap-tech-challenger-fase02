@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+  app:
+    container_name: products-service
+    build: .
+    command: runserver
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    # ports:
+    #   - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8000/health/"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+
