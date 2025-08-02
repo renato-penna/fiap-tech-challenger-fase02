@@ -52,12 +52,15 @@ def main() -> None:
 
     service = ProdutoService()
 
+    # Inicializar sessão
+    inicializar_sessao()
+    
+    # Garantir que o formulário seja sempre exibido
     st.session_state[SESSION_SHOW_FORM] = True
-    st.session_state[SESSION_EDIT_ID] = None
-    st.session_state[SESSION_DELETE_CONFIRMATION] = None
 
     st.markdown("---")
 
+    # Recarregar produtos a cada execução para garantir dados atualizados
     try:
         with st.spinner("🔄 Loading products..."):
             produtos = service.listar_todos()
@@ -104,13 +107,22 @@ def renderizar_grid(produtos: List, service: ProdutoService) -> None:
 
     st.subheader("Product List")
     
+    # Botão de refresh manual
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        if st.button("🔄 Refresh", key="btn_refresh", use_container_width=True):
+            st.rerun()
+    
+    # Usar timestamp para forçar atualização do grid quando necessário
+    grid_key = f"produtos_grid_{len(produtos)}"
+    
     grid_response = AgGrid(
         df,
         gridOptions=gb.build(),
         enable_enterprise_modules=False,
         update_mode="MODEL_CHANGED",
         fit_columns_on_grid_load=True,
-        key="produtos_grid",
+        key=grid_key,
         allow_unsafe_jscode=True
     )
 
@@ -136,7 +148,13 @@ def processar_selecao(
             else selected[0]
         )
         
-        produto = service.buscar_por_id(produto_dict['id'], produtos)
+        try:
+            produto = service.buscar_por_id(produto_dict['id'], produtos)
+        except ValueError:
+            # Produto não encontrado (pode ter sido deletado)
+            st.warning("⚠️ Selected product no longer exists. Please refresh the page.")
+            st.session_state[SESSION_DELETE_CONFIRMATION] = None
+            return
 
         if produto:
             st.write(f"Selected product: {produto.nome}")
@@ -145,15 +163,15 @@ def processar_selecao(
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                if st.button("✏️ Edit", key="btn_edit", use_container_width=True):
+                if st.button("✏️ Edit", key=f"btn_edit_{produto.id}", use_container_width=True):
                     st.session_state[SESSION_EDIT_ID] = produto.id
                     st.session_state[SESSION_SHOW_FORM] = True
-                    st.experimental_rerun()
+                    st.rerun()
             
             with col2:
-                if st.button("🗑️ Delete", key="btn_delete", use_container_width=True, type="secondary"):
+                if st.button("🗑️ Delete", key=f"btn_delete_{produto.id}", use_container_width=True, type="secondary"):
                     st.session_state[SESSION_DELETE_CONFIRMATION] = produto.id
-                    st.experimental_rerun()
+                    st.rerun()
             
             with col3:
                 st.write("")
@@ -170,14 +188,17 @@ def processar_selecao(
                                 service.excluir(produto.id)
                                 mostrar_sucesso(MESSAGES["produto_excluido"])
                                 st.session_state[SESSION_DELETE_CONFIRMATION] = None
-                                st.experimental_rerun()
+                                # Limpar seleção atual para evitar erro
+                                st.session_state["grid_selection"] = None
+                                # Forçar atualização da página para mostrar dados atualizados
+                                st.rerun()
                         except Exception as e:
                             mostrar_erro(f"Error deleting product: {str(e)}")
                 
                 with col2:
                     if st.button("❌ Cancel", key="btn_cancel_delete", use_container_width=True):
                         st.session_state[SESSION_DELETE_CONFIRMATION] = None
-                        st.experimental_rerun()
+                        st.rerun()
     else:
         st.session_state[SESSION_DELETE_CONFIRMATION] = None
 
@@ -214,7 +235,7 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
         except ValueError:
             mostrar_erro("Product not found.")
             limpar_formulario()
-            st.experimental_rerun()
+            st.rerun()
             return
 
     titulo = "✏️ Edit Product" if produto_editado else "➕ New Product"
@@ -255,7 +276,7 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
         if cancelar_clicked:
             limpar_formulario()
             st.success("✅ Form cancelled!")
-            st.experimental_rerun()
+            st.rerun()
 
         if salvar_clicked:
 
@@ -274,16 +295,24 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
             with st.spinner("💾 Saving product..."):
                 try:
                     if produto_editado:
+                        st.write(f"Debug: Atualizando produto {produto_editado.id}")
                         service.atualizar(
                             produto_editado.id, nome.strip(), espaco, valor
                         )
                         mostrar_sucesso(MESSAGES["produto_atualizado"])
+                        st.write("Debug: Produto atualizado com sucesso")
                     else:
+                        st.write("Debug: Criando novo produto")
                         service.criar(nome.strip(), espaco, valor)
                         mostrar_sucesso(MESSAGES["produto_criado"])
+                        st.write("Debug: Produto criado com sucesso")
 
+                    st.write("Debug: Limpando formulário")
                     limpar_formulario()
-                    st.experimental_rerun()
+                    st.write("Debug: Executando st.rerun()")
+                    # Forçar atualização da página para mostrar dados atualizados
+                    st.success("✅ Operation completed successfully!")
+                    st.rerun()
 
                 except Exception as e:
                     mostrar_erro(f"Error saving product: {str(e)}")
