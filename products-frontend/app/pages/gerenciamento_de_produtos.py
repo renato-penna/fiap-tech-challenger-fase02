@@ -223,7 +223,7 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
         "valor": float(produto_editado.valor) if produto_editado else 0.0
     }
 
-    with st.form("form_produto", clear_on_submit=True):
+    with st.form("form_produto", clear_on_submit=False):
         st.write("**Fill in the product data:**")
 
         nome = st.text_input("📝 Product Name", value=valores["nome"])
@@ -280,6 +280,7 @@ def renderizar_formulario(service: ProdutoService, produtos: List) -> None:
                         mostrar_sucesso(MESSAGES["produto_criado"])
 
                     limpar_formulario()
+                    st.experimental_rerun()
 
                 except Exception as e:
                     mostrar_erro(f"Error saving product: {str(e)}")
