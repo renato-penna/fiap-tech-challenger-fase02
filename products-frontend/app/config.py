@@ -1,29 +1,48 @@
-"""Configurações da aplicação."""
+"""
+Application Configuration Module.
+
+This module contains all configuration settings for the products management
+frontend application, including API URLs, page settings, session keys,
+and UI messages.
+"""
 
 import os
+from typing import Dict
 
-PRODUCTS_API_URL = os.getenv("PRODUCTS_API_URL", "http://products-service:8000/products")
-OPTIMIZER_API_URL = os.getenv("OPTIMIZER_API_URL", "http://optimizer-service:8002/optimize/")
+# API Configuration
+PRODUCTS_API_URL: str = os.getenv(
+    "PRODUCTS_API_URL",
+    "http://fiap-tech-challenger-fase2-products-service:8000/products"
+)
+OPTIMIZER_API_URL: str = os.getenv(
+    "OPTIMIZER_API_URL",
+    "http://fiap-tech-challenger-fase2-optimizer-cargo-service:8002/optimize/"
+)
 
-PAGE_TITLE = "Gerenciamento de Produtos"
-PAGE_LAYOUT = "wide"
+# Page Configuration
+PAGE_TITLE: str = "Product Management System"
+PAGE_LAYOUT: str = "wide"
 
-REQUEST_TIMEOUT = 60
+# Request Configuration
+REQUEST_TIMEOUT: int = 60
 
-SESSION_SHOW_FORM = "show_form"
-SESSION_EDIT_ID = "edit_id"
-SESSION_DELETE_CONFIRMATION = "awaiting_delete_confirmation"
+# Session Keys
+SESSION_SHOW_FORM: str = "show_form"
+SESSION_EDIT_ID: str = "edit_id"
+SESSION_DELETE_CONFIRMATION: str = "awaiting_delete_confirmation"
 
-MESSAGES = {
-    "produto_criado": "Produto criado com sucesso!",
-    "produto_atualizado": "Produto atualizado com sucesso!",
-    "produto_excluido": "Produto excluído com sucesso!",
-    "otimizacao_sucesso": "Otimização realizada com sucesso!",
-    "nenhum_produto": "Nenhum produto cadastrado.",
-    "selecione_produto": "Selecione ao menos um produto!"
+# UI Messages
+MESSAGES: Dict[str, str] = {
+    "produto_criado": "Product created successfully!",
+    "produto_atualizado": "Product updated successfully!",
+    "produto_excluido": "Product deleted successfully!",
+    "otimizacao_sucesso": "Optimization completed successfully!",
+    "nenhum_produto": "No products registered.",
+    "selecione_produto": "Please select at least one product!"
 }
 
-BUTTON_STYLE = """
+# UI Styles
+BUTTON_STYLE: str = """
 <style>
 .stButton>button {background-color: #1976d2; color: white;}
 .stTextInput>div>input {border: 1px solid #1976d2;}

@@ -1,41 +1,52 @@
-"""Aplicação principal - Página Home."""
+"""
+Main Application - Home Page.
+
+This module contains the main Streamlit application for the products management
+system. It provides the home page with navigation and system overview.
+"""
 
 import streamlit as st
+
 from config import PAGE_TITLE, PAGE_LAYOUT
 
-def main():
-    """Página principal da aplicação."""
+
+def main() -> None:
+    """
+    Main application page.
     
-    # Configuração da página
+    Sets up the page configuration and displays the home page with
+    system overview and navigation instructions.
+    """
     st.set_page_config(page_title=PAGE_TITLE, layout=PAGE_LAYOUT)
     
-    st.title("Sistema de Gerenciamento de Produtos")
+    st.title("Products Management System")
     
     st.markdown("""
-    ## Bem-vindo ao Sistema de Gerenciamento de Produtos
+    ## Welcome to the Products Management System
     
-    Este sistema permite:
+    This system allows:
     
-    ### 📦 Gerenciamento de Produtos
-    - Cadastrar novos produtos
-    - Editar produtos existentes
-    - Excluir produtos
-    - Visualizar lista completa de produtos
+    ### 📦 Product Management
+    - Register new products
+    - Edit existing products
+    - Delete products
+    - View complete product list
     
-    ### 🚛 Controle de Carga
-    - Selecionar produtos para otimização
-    - Configurar parâmetros de otimização
-    - Executar algoritmo genético para maximizar valor da carga
-    - Visualizar resultados da otimização
+    ### 🚛 Cargo Control
+    - Select products for optimization
+    - Configure optimization parameters
+    - Execute genetic algorithm to maximize cargo value
+    - View optimization results
     
     ---
     
-    ### Como usar:
-    1. **Navegue** usando o menu lateral
-    2. **Gerencie** seus produtos na seção correspondente
-    3. **Otimize** a carga do caminhão conforme necessário
+    ### How to use:
+    1. **Navigate** using the sidebar menu
+    2. **Manage** your products in the corresponding section
+    3. **Optimize** the truck cargo as needed
     
     """)
+
 
 if __name__ == "__main__":
     main()

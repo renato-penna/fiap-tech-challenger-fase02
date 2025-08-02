@@ -1,34 +1,77 @@
-from fastapi import HTTPException
-from app.schemas.optimize import OptimizeRequest, OptimizeResponse, ProdutoOutput
-from app.services.genetic_optimizer import AlgoritmoGenetico
+"""
+Optimizer Controller Module.
+
+This module contains the business logic controller for cargo optimization
+operations, providing the interface between API routes and the genetic
+algorithm.
+"""
+
+from typing import List
+
+from app.schemas.optimize import OptimizeRequest, OptimizeResponse
+from app.schemas.product import ProductOutput
+from .genetic_algorithm import GeneticAlgorithm
+
 
 class OptimizerController:
+    """
+    Controller for cargo optimization operations.
+
+    Provides business logic for genetic algorithm optimization,
+    handling request processing and response formatting.
+    """
+
     @staticmethod
     def optimize(data: OptimizeRequest) -> OptimizeResponse:
-        ag = AlgoritmoGenetico(
-            produtos=data.produtos,
-            limite=data.limite,
-            taxa_mutacao=data.taxa_mutacao,
-            numero_geracoes=data.numero_geracoes,
-            tamanho_populacao=data.tamanho_populacao
+        """
+        Optimize cargo loading using genetic algorithm.
+
+        Args:
+            data: Optimization request containing products and constraints
+
+        Returns:
+            OptimizeResponse: Optimization results with selected products and metrics
+
+        Raises:
+            HTTPException: If optimization fails or constraints are invalid
+        """
+        # Use default values for optional parameters
+        population_size = data.population_size or 200
+        number_generations = data.number_generations or 100
+        mutation_rate = data.mutation_rate or 0.01
+
+        ga = GeneticAlgorithm(
+            data.products,
+            data.limit,
+            population_size,
+            number_generations,
+            mutation_rate=mutation_rate
         )
-        melhor = ag.resolver()
-        produtos_result = []
-        espaco_total = 0
-        valor_total = 0
-        for i, gene in enumerate(melhor.cromossomo):
-            if gene == 1:
-                p = data.produtos[i]
-                total_espaco = p.espaco * p.quantidade
-                total_valor = p.valor * p.quantidade
-                produtos_result.append(ProdutoOutput(
-                    nome=p.nome,
-                    espaco=p.espaco,
-                    valor=p.valor,
-                    quantidade=p.quantidade,
-                    total_espaco=total_espaco,
-                    total_valor=total_valor
-                ))
-                espaco_total += total_espaco
-                valor_total += total_valor
-        return OptimizeResponse(produtos=produtos_result, espaco_total=espaco_total, valor_total=valor_total)
+        result = ga.run()
+
+        # Serialize the result into the response format
+        products: List[ProductOutput] = []
+        total_space: float = 0
+        total_value: float = 0
+
+        if result and hasattr(result, 'chromosome'):
+            for idx, gene in enumerate(result.chromosome):
+                if gene == '1':
+                    product = ga.products[idx]
+                    products.append(ProductOutput(
+                        name=product.name,
+                        space=product.space,
+                        value=product.value,
+                        amount=product.amount,
+                        total_space=product.space * product.amount,
+                        total_value=product.value * product.amount
+                    ))
+                    total_space += product.space * product.amount
+                    total_value += product.value * product.amount
+
+        return OptimizeResponse(
+            products=products,
+            total_space=total_space,
+            total_value=total_value
+        )
+
