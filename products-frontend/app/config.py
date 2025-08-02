@@ -12,11 +12,11 @@ from typing import Dict
 # API Configuration
 PRODUCTS_API_URL: str = os.getenv(
     "PRODUCTS_API_URL",
-    "http://fiap-tech-challenger-fase2-products-service:8000/products"
+    "http://localhost:8000/products"
 )
 OPTIMIZER_API_URL: str = os.getenv(
-    "OPTIMIZER_API_URL",
-    "http://fiap-tech-challenger-fase2-optimizer-cargo-service:8002/optimize/"
+    "OPTIMIZER_URL",
+    "http://localhost:8002/optimize/"
 )
 
 # Page Configuration
@@ -24,7 +24,7 @@ PAGE_TITLE: str = "Product Management System"
 PAGE_LAYOUT: str = "wide"
 
 # Request Configuration
-REQUEST_TIMEOUT: int = 60
+REQUEST_TIMEOUT: int = 120
 
 # Session Keys
 SESSION_SHOW_FORM: str = "show_form"

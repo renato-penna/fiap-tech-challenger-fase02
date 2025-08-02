@@ -53,22 +53,26 @@ class OtimizacaoService:
             Exception: If there's an error during optimization
         """
         payload = {
-            "produtos": produtos_selecionados,
-            "limite": limite,
-            "taxa_mutacao": taxa_mutacao,
-            "numero_geracoes": numero_geracoes,
-            "tamanho_populacao": tamanho_populacao
+            "products": produtos_selecionados,
+            "limit": limite,
+            "mutation_rate": taxa_mutacao,
+            "number_generations": numero_geracoes,
+            "population_size": tamanho_populacao
         }
 
         try:
+            print(f"Debug: Tentando conectar com {self.base_url}")
+            print(f"Debug: Payload = {payload}")
             response = requests.post(
                 self.base_url, json=payload, timeout=self.timeout
             )
             response.raise_for_status()
             return response.json()
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
+            print(f"Debug: ConnectionError = {e}")
             raise ConnectionError("Connection error with optimization service.")
         except requests.exceptions.RequestException as e:
+            print(f"Debug: RequestException = {e}")
             raise Exception(f"Error during optimization: {e}")
 
     def otimizar(
@@ -95,10 +99,10 @@ class OtimizacaoService:
             quantidade = quantidades.get(produto.id, 0)
             if quantidade > 0:
                 produtos_selecionados.append({
-                    "nome": produto.nome,
-                    "espaco": produto.espaco,
-                    "valor": produto.valor,
-                    "quantidade": quantidade
+                    "name": produto.nome,
+                    "space": produto.espaco,
+                    "value": produto.valor,
+                    "amount": quantidade
                 })
 
         return self.otimizar_carga(

@@ -2,7 +2,8 @@
 Cargo Control Page Module.
 
 This module contains the Streamlit page for cargo optimization functionality,
-including product selection, optimization parameters, and genetic algorithm execution.
+including product selection, optimization parameters, and genetic algorithm
+execution.
 """
 
 import sys
@@ -19,7 +20,7 @@ from services.otimizacao_service import OtimizacaoService
 from utils.ui_helpers import (
     aplicar_estilos, mostrar_erro, mostrar_sucesso, mostrar_info
 )
-from config import MESSAGES, PAGE_TITLE, PAGE_LAYOUT
+from config import PAGE_TITLE, PAGE_LAYOUT
 
 st.set_page_config(
     page_title=f"{PAGE_TITLE} - Cargo Control",
@@ -134,7 +135,7 @@ def renderizar_selecao_produtos(
             )
 
         if resultado:
-            exibir_resultado(resultado)
+            exibir_resultado(resultado, limite)
 
 
 def executar_otimizacao(
@@ -169,30 +170,32 @@ def executar_otimizacao(
         return None
 
 
-def exibir_resultado(resultado: Dict[str, Any]) -> None:
+def exibir_resultado(resultado: Dict[str, Any], limite: float) -> None:
     """
     Display optimization results.
 
     Args:
         resultado: Optimization result dictionary
+        limite: Space limit used in optimization
     """
     st.subheader("📊 Optimization Results")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Total Value", f"${resultado['valor_total']:.2f}")
+        st.metric("Total Value", f"${resultado['total_value']:.2f}")
 
     with col2:
-        st.metric("Space Used", f"{resultado['espaco_usado']:.2f}")
+        st.metric("Space Used", f"{resultado['total_space']:.2f}")
 
     with col3:
-        st.metric("Space Efficiency", f"{(resultado['espaco_usado']/resultado['limite'])*100:.1f}%")
+        eficiencia = (resultado['total_space']/limite)*100
+        st.metric("Space Efficiency", f"{eficiencia:.1f}%")
 
     st.subheader("📦 Selected Products")
 
-    if resultado['produtos_selecionados']:
-        df_resultado = pd.DataFrame(resultado['produtos_selecionados'])
+    if resultado['products']:
+        df_resultado = pd.DataFrame(resultado['products'])
         st.dataframe(df_resultado, use_container_width=True)
     else:
         st.info("No products were selected in the optimal solution.")

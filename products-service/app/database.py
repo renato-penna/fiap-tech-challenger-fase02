@@ -16,7 +16,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 DATABASE_URL: str = os.getenv(
     "DATABASE_URL",
-    "postgresql://app_user:mysecretpassword@fiap-tech-challenger-fase2-db:5432/products_db"
+    "postgresql://app_user:mysecretpassword@localhost:5433/products_db"
 )
 
 engine = create_engine(DATABASE_URL, echo=True)

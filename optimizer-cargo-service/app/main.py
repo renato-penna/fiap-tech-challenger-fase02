@@ -16,4 +16,15 @@ app = FastAPI(
     description="Service for optimizing cargo loading using genetic algorithms",
     version="1.0.0"
 )
+
+@app.get("/health/")
+async def health_check():
+    """
+    Health check endpoint.
+    
+    Returns:
+        dict: Health status
+    """
+    return {"status": "healthy", "service": "optimizer-cargo-service"}
+
 app.include_router(optimizer_router)

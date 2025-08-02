@@ -12,7 +12,7 @@ from typing import Dict
 from fastapi import FastAPI
 
 from app.database import create_db_tables, get_db, insert_initial_products
-from app.routers import product_router
+from app.routers import product_router, health_router
 
 
 app = FastAPI(title="Products Management Backend")
@@ -44,14 +44,17 @@ async def startup_event() -> None:
                 db.close()
 
             return
-        except Exception as e:
+        except Exception:
             if i < max_retries - 1:
                 time.sleep(retry_delay)
             else:
                 raise
 
 
-app.include_router(product_router.router, prefix="/products", tags=["products"])
+app.include_router(
+    product_router.router, prefix="/products", tags=["products"]
+)
+app.include_router(health_router.router)
 
 
 @app.get("/")

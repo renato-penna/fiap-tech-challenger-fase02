@@ -22,8 +22,7 @@ services:
   # Serviço de Backend de Produtos
   fiap-tech-challenger-fase2-products-service:
     hostname: fiap-tech-challenger-fase2-products-service
-    ports:
-      - "8000:8000"
+    network_mode: host
     extends:
       file: products-service/docker-compose.yml
       service: app
@@ -33,8 +32,7 @@ services:
   # Serviço de Backend de Otimização
   fiap-tech-challenger-fase2-optimizer-cargo-service:
     hostname: fiap-tech-challenger-fase2-optimizer-cargo-service
-    ports:
-      - "8002:8002"
+    network_mode: host
     extends:
       file: optimizer-cargo-service/docker-compose.yml
       service: app
@@ -44,8 +42,7 @@ services:
   # Serviço de Frontend Streamlit
   fiap-tech-challenger-fase2-products-frontend:
     hostname: fiap-tech-challenger-fase2-products-frontend
-    ports:
-      - "8501:8501"
+    network_mode: host
     extends:
       file: products-frontend/docker-compose.yml
       service: app
