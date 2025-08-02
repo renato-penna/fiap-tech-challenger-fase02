@@ -103,13 +103,15 @@ def renderizar_grid(produtos: List, service: ProdutoService) -> None:
     gb.configure_selection('single', use_checkbox=True)
 
     st.subheader("Product List")
+    
     grid_response = AgGrid(
         df,
         gridOptions=gb.build(),
         enable_enterprise_modules=False,
         update_mode="MODEL_CHANGED",
         fit_columns_on_grid_load=True,
-        key="produtos_grid"
+        key="produtos_grid",
+        allow_unsafe_jscode=True
     )
 
     processar_selecao(grid_response, produtos, service)
@@ -133,6 +135,7 @@ def processar_selecao(
             selected.iloc[0].to_dict() if isinstance(selected, pd.DataFrame)
             else selected[0]
         )
+        
         produto = service.buscar_por_id(produto_dict['id'], produtos)
 
         if produto:
@@ -190,7 +193,7 @@ def tem_selecao(selected) -> bool:
         bool: True if there is a valid selection, False otherwise
     """
     return ((isinstance(selected, pd.DataFrame) and not selected.empty) or
-            (isinstance(selected, list) and selected))
+            (isinstance(selected, list) and len(selected) > 0))
 
 
 def renderizar_formulario(service: ProdutoService, produtos: List) -> None:

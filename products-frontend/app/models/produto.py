@@ -28,7 +28,7 @@ class Produto:
     nome: str
     espaco: float
     valor: float
-    id: Optional[int] = None
+    id: Optional[str] = None
     quantidade: Optional[int] = None
 
     def to_dict(self) -> Dict[str, Any]:

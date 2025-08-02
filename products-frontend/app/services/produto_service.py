@@ -76,7 +76,7 @@ class ProdutoService:
             raise Exception(f"Error creating product: {e}")
 
     def atualizar(
-        self, produto_id: int, nome: str, espaco: float, valor: float
+        self, produto_id: str, nome: str, espaco: float, valor: float
     ) -> Produto:
         """
         Update an existing product.
@@ -105,7 +105,7 @@ class ProdutoService:
         except requests.exceptions.RequestException as e:
             raise Exception(f"Error updating product: {e}")
 
-    def excluir(self, produto_id: int) -> None:
+    def excluir(self, produto_id: str) -> None:
         """
         Delete a product.
 
@@ -124,7 +124,7 @@ class ProdutoService:
             raise Exception(f"Error deleting product: {e}")
 
     def buscar_por_id(
-        self, produto_id: int, produtos: List[Produto]
+        self, produto_id: str, produtos: List[Produto]
     ) -> Optional[Produto]:
         """
         Find product by ID from a list of products.
