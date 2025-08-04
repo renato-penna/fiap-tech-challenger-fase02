@@ -92,6 +92,7 @@ A ordem de inicialização é controlada por dependências:
 1. **Porta já em uso**: Verifique se as portas 5433, 8000, 8002, 8501 estão livres
 2. **Erro de conexão com banco**: Aguarde o health check do database completar
 3. **Serviços não iniciam**: Verifique os logs com `docker-compose logs [service-name]`
+4. **Terminação de linha**: os arquivos entrypoint.sh devem usar terminação LF. Em IDE Windows mude de CRLF para LF.
 
 ### Comandos úteis:
 
@@ -107,4 +108,4 @@ docker-compose up --build fiap-tech-challenger-fase2-products-service
 
 # Verificar status dos containers
 docker-compose ps
-``` 
+```
